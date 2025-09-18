@@ -103,6 +103,7 @@ Here are available product lines:
 
 Here are recent content_backlog items:
 {json.dumps(backlog)}
+UNDER NO CIRCUMSTANCES should you repeat any topic already present in backlog.
 
 Here are current trends:
 {json.dumps(trends)}
@@ -139,7 +140,7 @@ FAQs: {json.dumps(faqs)}
 Follow these style rules:
 {MY_STYLE_GUIDE}
 
-Avoid repeating any topic already present in content_backlog.
+UNDER NO CIRCUMSTANCES should you repeat any topic already present in backlog.
 Backlog items: {backlog}
 
 Return JSON only:
