@@ -5,3 +5,4 @@ Lib/
 pyvenv.cfg
 include/
 __pycache__/
+index.html

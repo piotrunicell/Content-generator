@@ -8,6 +8,11 @@ from math import ceil
 import os
 import time
 from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+
+
 def main():
 
 
@@ -19,8 +24,13 @@ def main():
 
 
     # Change to your chromedriver path if necessary
-    driver = webdriver.Chrome()
-    wait = WebDriverWait(driver, 15)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=chrome_options)
+    WebDriverWait(driver, 15)
     # Step 1: Go to the collections page
     COLLECTION_URL = "https://primacol.com/en-pl/collections/collections"
     driver.get(COLLECTION_URL)
@@ -68,7 +78,7 @@ def main():
             print(colors)
             # Any additional selectors for details:
             # For example: price, image, availability, etc.
-            item = {"line": name, "colorways": colors, "updated": datetime.now().strftime("%Y-%m-%d"), "description": description}
+            item = {"line": name, "colorways": colors, "updated": datetime.now().strftime("%Y-%m-%d"), "description": description, "url": link}
             all_data.append(item)
         except Exception:
             print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!Failed to scrape {link}")
@@ -81,7 +91,6 @@ def main():
     for row in all_data:
         print(row)
 
-
     table = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
     batch_size = 10
@@ -91,4 +100,4 @@ def main():
         table.batch_create(batch)  # add typecast=True if you want Airtable to auto-convert types
 
 if __name__ == "__main__":
-    main()      
+    main()

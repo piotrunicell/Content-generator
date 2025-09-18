@@ -215,7 +215,6 @@ def generate_article():
 
     return article
 
-
 # ---------- RUN EXAMPLE ----------
 
 if __name__ == "__main__":
