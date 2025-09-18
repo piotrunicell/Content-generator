@@ -3,3 +3,6 @@ requests
 python-dotenv
 pytrends
 selenium
+openai
+pyairtable
+flask
