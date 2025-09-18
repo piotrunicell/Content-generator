@@ -180,7 +180,8 @@ def add_to_backlog(title, target_audience, linked_products, content):
 
 # ---------- MAIN FLOW ----------
 
-def generate_article(user_prompt):
+def generate_article():
+    user_prompt = "Napisz artykuł blogowy na temat związany z remontem/renowacją i przynajmniej jednym z produktów z tabeli produkty. Artykuł zostanie umieszczony na stronie: primacol.com. Ta marka zajmuje się produkcją farb oraz impregnatów i chemii użytkowej. To ma być na pierwszym miejscu artyków a nie reklama produktu. Całość ma być po angielsku."
     plan = plan_initial(user_prompt)
     trends = fetch_table("trends") if plan.get("trends_needed") else []
     backlog = fetch_backlog()
@@ -217,7 +218,7 @@ def generate_article(user_prompt):
 # ---------- RUN EXAMPLE ----------
 
 if __name__ == "__main__":
-    result = generate_article("Napisz artykuł blogowy na temat związany z remontem/renowacją i przynajmniej jednym z produktów z tabeli produkty. Artykuł zostanie umieszczony na stronie: primacol.com. Ta marka zajmuje się produkcją farb oraz impregnatów i chemii użytkowej. To ma być na pierwszym miejscu artyków a nie reklama produktu. Całość ma być po angielsku.")
+    result = generate_article()
     print("\n✅ ARTICLE GENERATED:\n")
     print("Title:", result["title"])
     print("Target Audience:", result["target_audience"])

@@ -41,12 +41,8 @@ def update_trends():
 
 @app.route('/generate_article', methods=['POST'])
 def generate_article():
-    data = request.json
-    prompt = data.get('prompt')
-    if not prompt:
-        return jsonify({"error": "Missing prompt parameter"}), 400
     try:
-        article = article_generator.generate_article(prompt)
+        article = article_generator.generate_article()
         return jsonify(article)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
