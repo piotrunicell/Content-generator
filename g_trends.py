@@ -14,7 +14,7 @@ def main():
     load_dotenv()
 
     AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID')
-    AIRTABLE_TABLE_NAME = 'trend_signals'
+    AIRTABLE_TABLE_NAME = 'trends'
     AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')
 
     if not AIRTABLE_BASE_ID or not AIRTABLE_API_KEY:
@@ -117,7 +117,6 @@ def main():
         "jak pomalować ściany",
         "farba do salonu",
         "farba do kuchni",
-
         "farba do wnętrz",
         "jak wybrać farbę",
         "kolory farb do wnętrz",
