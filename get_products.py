@@ -14,7 +14,7 @@ from selenium.webdriver.chrome.options import Options
 
 
 def main():
-
+    print("call initiated")
 
     load_dotenv()
 
@@ -50,6 +50,7 @@ def main():
         options=chrome_options
     )
     WebDriverWait(driver, 15)
+    print("Browser launched")
     # Step 1: Go to the collections page
     COLLECTION_URL = "https://primacol.com/en-pl/collections/collections"
     driver.get(COLLECTION_URL)

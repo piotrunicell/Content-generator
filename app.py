@@ -31,6 +31,7 @@ def health_check():
 
 @app.route('/scrape_products', methods=['POST'])
 def scrape_products():
+    print("Starting product scraping...")
     threading.Thread(target=run_get_products).start()
     return jsonify({"status": "Product scraping started"}), 202
 
