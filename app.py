@@ -12,6 +12,10 @@ import article_generator
 
 app = Flask(__name__)
 
+logging.basicConfig(level=logging.INFO, 
+                    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+
+
 # Wrap get_products main logic
 def run_get_products():
     try:
@@ -51,6 +55,6 @@ def generate_article():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
     logging.basicConfig(level=logging.INFO)
     logging.info("Your message")

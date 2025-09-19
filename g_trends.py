@@ -11,7 +11,13 @@ import logging
 
 def main(): 
         
+
     load_dotenv()
+
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
 
     AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID')
     AIRTABLE_TABLE_NAME = 'trends'
@@ -65,9 +71,9 @@ def main():
         old_records = get_old_records()
         if old_records:
             delete_records(old_records)
-            logging.info(f"Deleted {len(old_records)} records older than {threshold_date}.")
+            logger.info(f"Deleted {len(old_records)} records older than {threshold_date}.")
         else:
-            logging.info("No records older than 2 weeks to delete.")
+            logger.info("No records older than 2 weeks to delete.")
 
     def upload_to_airtable(trendy_keywords_dict):
         """Upload trending keywords to Airtable."""
@@ -94,13 +100,13 @@ def main():
                     "source_url": source_url
                 }
             }
-            logging.info(json.dumps(payload, indent=2))
+            logger.info(json.dumps(payload, indent=2))
             try:
                 response = requests.post(url, headers=headers, json=payload)
                 response.raise_for_status()
-                logging.info(f"Uploaded: {keyword} with score {float(score/10)}")
+                logger.info(f"Uploaded: {keyword} with score {float(score/10)}")
             except requests.exceptions.RequestException as e:
-                logging.info(f"Failed to upload {keyword}: {e}")
+                logger.info(f"Failed to upload {keyword}: {e}")
 
     # Delete old records first
     delete_old_records()
@@ -135,7 +141,7 @@ def main():
     trendy_keywords = {}
 
     for kw in seed_keywords:
-        logging.info(f"Processing keyword: {kw}")
+        logger.info(f"Processing keyword: {kw}")
         try:
             time.sleep(90)  # Wait to avoid being blocked
             pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='PL', gprop='')
@@ -159,19 +165,19 @@ def main():
 
             
         except Exception as e:
-            logging.info(f"Error processing {kw}: {e}")
+            logger.info(f"Error processing {kw}: {e}")
             continue
 
-    logging.info(f"Found {len(trendy_keywords)} trending keywords")
-    logging.info("Trending keywords:", trendy_keywords)
+    logger.info(f"Found {len(trendy_keywords)} trending keywords")
+    logger.info("Trending keywords:", trendy_keywords)
 
     # Upload to Airtable
     if trendy_keywords:
-        logging.info(trendy_keywords)
+        logger.info(trendy_keywords)
         upload_to_airtable(trendy_keywords)
-        logging.info("Upload to Airtable completed!")
+        logger.info("Upload to Airtable completed!")
     else:
-        logging.info("No trending keywords found to upload.")
+        logger.info("No trending keywords found to upload.")
 
 if __name__ == "__main__":
     main()
