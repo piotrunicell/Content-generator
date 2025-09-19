@@ -11,8 +11,27 @@ from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import logging
+import json
 
-
+class CustomRailwayLogFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "time": self.formatTime(record),
+            "level": record.levelname,
+            "message": record.getMessage()
+        }
+        return json.dumps(log_record)
+    
+def get_logger():
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO) # this should be just "logger.setLevel(logging.INFO)" but markdown is interpreting it wrong here...
+    handler = logging.StreamHandler()
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    formatter = CustomRailwayLogFormatter()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 def main():
     print("call initiated")
@@ -26,7 +45,7 @@ def main():
 
     # Change to your chromedriver path if necessary
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.set_capability('browserless:token', os.environ['BROWSER_TOKEN'])
+    # chrome_options.set_capability('browserless:token', os.environ['BROWSER_TOKEN'])
     # Set args similar to puppeteer's for best performance
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-background-timer-throttling")
@@ -46,13 +65,17 @@ def main():
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
 
-    driver = webdriver.Remote(
-        command_executor=os.environ['BROWSER_WEBDRIVER_ENDPOINT'],
-        options=chrome_options
-    )
+    # driver = webdriver.Remote(
+    #     command_executor=os.environ['BROWSER_WEBDRIVER_ENDPOINT'],
+    #     options=chrome_options
+    # )
+
+    driver = webdriver.Chrome(options=chrome_options)
+
     WebDriverWait(driver, 15)
     logging.basicConfig(level=logging.INFO)
-    logging.info("browser launched")
+    log = get_logger()
+    log.info("browser launched")
     # Step 1: Go to the collections page
     COLLECTION_URL = "https://primacol.com/en-pl/collections/collections"
     driver.get(COLLECTION_URL)
@@ -73,7 +96,7 @@ def main():
 
     all_data = []
     # Step 4: Scrape details from each individual product page
-    logging.info(f"Found {len(product_links)} products. Scraping details...")
+    log.info(f"Found {len(product_links)} products. Scraping details...")
     print(f"Found {len(product_links)} products. Scraping details...")
     for link in product_links:
         driver.get(link)
@@ -113,7 +136,7 @@ def main():
     # Print or save the results
     for row in all_data:
         print(row)
-    logging.info(f"uploading {len(all_data)} records to Airtable")
+    log.info(f"uploading {len(all_data)} records to Airtable")
     table = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
     batch_size = 10
