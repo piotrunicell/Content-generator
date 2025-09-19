@@ -10,6 +10,7 @@ import time
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import logging
 
 
 
@@ -50,7 +51,8 @@ def main():
         options=chrome_options
     )
     WebDriverWait(driver, 15)
-    print("Browser launched")
+    logging.basicConfig(level=logging.INFO)
+    logging.info("browser launched")
     # Step 1: Go to the collections page
     COLLECTION_URL = "https://primacol.com/en-pl/collections/collections"
     driver.get(COLLECTION_URL)
@@ -71,6 +73,7 @@ def main():
 
     all_data = []
     # Step 4: Scrape details from each individual product page
+    logging.info(f"Found {len(product_links)} products. Scraping details...")
     print(f"Found {len(product_links)} products. Scraping details...")
     for link in product_links:
         driver.get(link)
@@ -110,7 +113,7 @@ def main():
     # Print or save the results
     for row in all_data:
         print(row)
-
+    logging.info(f"uploading {len(all_data)} records to Airtable")
     table = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
     batch_size = 10

@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import threading
 from dotenv import load_dotenv
 import os
+import logging
 
 load_dotenv()
 
@@ -51,4 +52,5 @@ def generate_article():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     app.run(host='0.0.0.0', port=port)
-    print(f"TEST: Server running on port {port}")
+    logging.basicConfig(level=logging.INFO)
+    logging.info("Your message")
