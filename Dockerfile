@@ -14,8 +14,7 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     && apt-get install -y ./google-chrome-stable_current_amd64.deb \
     && rm google-chrome-stable_current_amd64.deb
 
-    
-RUN rm /usr/local/bin/chromedriver
+
 # Install Chromedriver matching Chrome version
 RUN export CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f3 | cut -d. -f1) && \
     echo "Installed Chrome Major Version: $CHROME_VERSION" && \
