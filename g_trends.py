@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 from datetime import timedelta
 from dotenv import load_dotenv
+import logging
 
 def main(): 
         
@@ -64,9 +65,9 @@ def main():
         old_records = get_old_records()
         if old_records:
             delete_records(old_records)
-            print(f"Deleted {len(old_records)} records older than {threshold_date}.")
+            logging.info(f"Deleted {len(old_records)} records older than {threshold_date}.")
         else:
-            print("No records older than 2 weeks to delete.")
+            logging.info("No records older than 2 weeks to delete.")
 
     def upload_to_airtable(trendy_keywords_dict):
         """Upload trending keywords to Airtable."""
@@ -93,13 +94,13 @@ def main():
                     "source_url": source_url
                 }
             }
-            print(json.dumps(payload, indent=2))
+            logging.info(json.dumps(payload, indent=2))
             try:
                 response = requests.post(url, headers=headers, json=payload)
                 response.raise_for_status()
-                print(f"Uploaded: {keyword} with score {float(score/10)}")
+                logging.info(f"Uploaded: {keyword} with score {float(score/10)}")
             except requests.exceptions.RequestException as e:
-                print(f"Failed to upload {keyword}: {e}")
+                logging.info(f"Failed to upload {keyword}: {e}")
 
     # Delete old records first
     delete_old_records()
@@ -135,7 +136,7 @@ def main():
     trendy_keywords = {}
 
     for kw in seed_keywords:
-        print(f"Processing keyword: {kw}")
+        logging.info(f"Processing keyword: {kw}")
         try:
             time.sleep(90)  # Wait to avoid being blocked
             pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='PL', gprop='')
@@ -159,19 +160,19 @@ def main():
 
             
         except Exception as e:
-            print(f"Error processing {kw}: {e}")
+            logging.info(f"Error processing {kw}: {e}")
             continue
 
-    print(f"Found {len(trendy_keywords)} trending keywords")
-    print("Trending keywords:", trendy_keywords)
+    logging.info(f"Found {len(trendy_keywords)} trending keywords")
+    logging.info("Trending keywords:", trendy_keywords)
 
     # Upload to Airtable
     if trendy_keywords:
-        print(trendy_keywords)
+        logging.info(trendy_keywords)
         upload_to_airtable(trendy_keywords)
-        print("Upload to Airtable completed!")
+        logging.info("Upload to Airtable completed!")
     else:
-        print("No trending keywords found to upload.")
+        logging.info("No trending keywords found to upload.")
 
 if __name__ == "__main__":
     main()
