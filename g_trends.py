@@ -10,14 +10,10 @@ from dotenv import load_dotenv
 import logging
 
 def main(): 
-        
-
     load_dotenv()
-
 
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
-
 
     AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID')
     AIRTABLE_TABLE_NAME = 'trends'
@@ -27,16 +23,14 @@ def main():
         raise ValueError("Missing AIRTABLE_BASE_ID or AIRTABLE_API_KEY in environment variables")
 
     def delete_old_records():
-        """Delete records older than 14 days from Airtable."""
+        """Delete records older than 10 days from Airtable."""
         headers = {
             "Authorization": f"Bearer {AIRTABLE_API_KEY}",
             "Content-Type": "application/json"
         }
 
-        # Calculate date 14 days ago
         threshold_date = (datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d')
 
-        # Step 1: Query records older than 2 weeks
         url = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
         params = {
             'filterByFormula': f"IS_BEFORE({{date}}, '{threshold_date}')",
@@ -59,7 +53,6 @@ def main():
                     break
             return old_record_ids
 
-        # Step 2: Delete records in batches (max 10 per request)
         def delete_records(record_ids):
             for i in range(0, len(record_ids), 10):
                 batch = record_ids[i:i+10]
@@ -71,11 +64,13 @@ def main():
         old_records = get_old_records()
         if old_records:
             delete_records(old_records)
-            logger.info(f"Deleted {len(old_records)} records older than {threshold_date}.")
+            msg = f"Deleted {len(old_records)} records older than {threshold_date}."
+            logger.info(msg); print(msg)
         else:
-            logger.info("No records older than 2 weeks to delete.")
+            msg = "No records older than 10 days to delete."
+            logger.info(msg); print(msg)
 
-    def upload_to_airtable(trendy_keywords_dict):
+    def upload_to_airtable(trendy_keywords_dict, country):
         """Upload trending keywords to Airtable."""
         headers = {
             "Authorization": f"Bearer {AIRTABLE_API_KEY}",
@@ -84,100 +79,163 @@ def main():
         
         url = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
         upload_date = datetime.now().strftime('%Y-%m-%d')
-        
+
+        geo = "GB" if country == "UK" else country
+
         for keyword, score in trendy_keywords_dict.items():
-            # Create Google Trends source URL
-            time.sleep(0.5)  # Short wait before processing results
+            time.sleep(0.5)  # avoid hitting API too fast
             encoded_keyword = keyword.replace(' ', '%20')
-            source_url = f"https://trends.google.com/trends/explore?q={encoded_keyword}&geo=PL"
+            source_url = f"https://trends.google.com/trends/explore?q={encoded_keyword}&geo={geo}"
             
             payload = {
                 "fields": {
                     "date": upload_date,
                     "platform": "Google Trends",
+                    "country": country,
                     "keyword": keyword,
                     "score": float(score/10),
                     "source_url": source_url
                 }
             }
-            logger.info(json.dumps(payload, indent=2))
+            msg = json.dumps(payload, indent=2)
+            logger.info(msg); print(msg)
             try:
                 response = requests.post(url, headers=headers, json=payload)
                 response.raise_for_status()
-                logger.info(f"Uploaded: {keyword} with score {float(score/10)}")
+                msg = f"Uploaded: {keyword} ({country}) with score {float(score/10)}"
+                logger.info(msg); print(msg)
             except requests.exceptions.RequestException as e:
-                logger.info(f"Failed to upload {keyword}: {e}")
+                msg = f"Failed to upload {keyword} ({country}): {e}"
+                logger.info(msg); print(msg)
 
-    # Delete old records first
+    # Step 1: Delete old records
     delete_old_records()
 
-    # Initialize connection (Polish language and CEST timezone)
+    # Step 2: Seed queries
+    search_queries = {
+        "PL": [
+            # "remont mieszkania",
+            # "remont domu", 
+            # "malowanie ścian",
+            # "malowanie sufitu",
+            # "przygotowanie ścian do malowania",
+            # "jak pomalować ściany",
+            # "farba do salonu",
+            # "farba do kuchni",
+            # "farba do wnętrz",
+            # "jak wybrać farbę",
+            # "kolory farb do wnętrz",
+            # "farby do pokoju dziecięcego",
+            # "farby odporne na wilgoć",
+            # "malowanie pokoju",
+            # "malowanie mebli",
+            # "tapetowanie ścian",
+            # "dekoracja wnętrz",
+            # "renowacja ścian",
+            # "jak zrobić remont",
+            # "tanie farby do malowania",
+            "profesjonalne malowanie"
+        ],
+        "UK": [
+            # "home renovation",
+            # "DIY wall painting",
+            # "decorative wall finishes",
+            # "interior paint trends",
+            # "wall texture paint",
+            # "eco-friendly wall paint",
+            # "decorative plaster",
+            # "chalk paint furniture",
+            # "microcement walls",
+            # "concrete effect paint",
+            # "wood protection oil",
+            # "decking stain",
+            # "wall colour ideas 2025",
+            # "popular living room colours",
+            # "bathroom waterproof paint",
+            # "kitchen wall paint trends",
+            # "furniture upcycling paint",
+            # "wall stencils",
+            # "modern wall design ideas",
+            "sustainable home decor"
+        ],
+        "DE": [
+            # "Wohnung renovieren",
+            # "Wände streichen",
+            # "Dekorative Wandgestaltung",
+            # "Farbtrends Innenräume",
+            # "Wandfarbe Ideen",
+            # "Ökologische Wandfarbe",
+            # "Dekorputz",
+            # "Möbel mit Kreidefarbe streichen",
+            # "Mikrozement Wände",
+            # "Betonoptik Farbe",
+            # "Holzschutz Öl",
+            # "Terrassenlasur",
+            # "Wohnzimmer Farbe Trends",
+            # "Badezimmer Wandfarbe",
+            # "Küche Wandfarbe",
+            # "Möbel Upcycling Farbe",
+            # "Wandschablonen",
+            # "Moderne Wandgestaltung",
+            "Nachhaltige Wohnideen"
+        ]
+    }
+
+    # Step 3: Init pytrends
     pytrends = TrendReq(hl='pl-PL', tz=120)
 
-    seed_keywords = [
-        "remont mieszkania",
-        "remont domu", 
-        "malowanie ścian",
-        "malowanie sufitu",
-        "przygotowanie ścian do malowania",
-        "jak pomalować ściany",
-        "farba do salonu",
-        "farba do kuchni",
-        "farba do wnętrz",
-        "jak wybrać farbę",
-        "kolory farb do wnętrz",
-        "farby do pokoju dziecięcego",
-        "farby odporne na wilgoć",
-        "malowanie pokoju",
-        "malowanie mebli",
-        "tapetowanie ścian",
-        "dekoracja wnętrz",
-        "renowacja ścian",
-        "jak zrobić remont",
-        "tanie farby do malowania",
-        "profesjonalne malowanie"
-    ]
-
+    # Step 4: Collect trends
     trendy_keywords = {}
 
-    for kw in seed_keywords:
-        logger.info(f"Processing keyword: {kw}")
-        try:
-            time.sleep(90)  # Wait to avoid being blocked
-            pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo='PL', gprop='')
-            related_queries = pytrends.related_queries()
-            
-            if kw in related_queries:
-                top = related_queries[kw]['top']
-                if top is not None:
-                    for _, row in top.iterrows():
-                        keyword = row['query']
-                        score = row['value']
-                        trendy_keywords[keyword] = score * 0.75
+    for country, keywords in search_queries.items():
+        geo = "GB" if country == "UK" else country
+        trendy_keywords[country] = {}
 
-                rising = related_queries[kw]['rising']
-                if rising is not None:
-                    for _, row in rising.iterrows():
-                        keyword = row['query']
-                        score = row['value']
-                        trendy_keywords[keyword] = score * 1.25
-            
+        msg = f"=== Processing country: {country} ==="
+        logger.info(msg); print(msg)
 
-            
-        except Exception as e:
-            logger.info(f"Error processing {kw}: {e}")
-            continue
+        for kw in keywords:
+            msg = f"Processing keyword: {kw}"
+            logger.info(msg); print(msg)
+            try:
+                time.sleep(120)  # long wait to avoid block
+                pytrends.build_payload([kw], cat=0, timeframe='now 7-d', geo=geo, gprop='')
+                related_queries = pytrends.related_queries()
 
-    logger.info(f"Found {len(trendy_keywords)} trending keywords")
-    logger.info("Trending keywords:", trendy_keywords)
+                if kw in related_queries:
+                    top = related_queries[kw]['top']
+                    if top is not None:
+                        for _, row in top.iterrows():
+                            keyword = row['query']
+                            score = row['value']
+                            trendy_keywords[country][keyword] = score * 0.75
 
-    # Upload to Airtable
-    if trendy_keywords:
-        logger.info(trendy_keywords)
-        upload_to_airtable(trendy_keywords)
-        logger.info("Upload to Airtable completed!")
-    else:
-        logger.info("No trending keywords found to upload.")
+                    rising = related_queries[kw]['rising']
+                    if rising is not None:
+                        for _, row in rising.iterrows():
+                            keyword = row['query']
+                            score = row['value']
+                            trendy_keywords[country][keyword] = score * 1.25
+
+            except Exception as e:
+                msg = f"Error processing {kw}: {e}"
+                logger.info(msg); print(msg)
+                continue
+
+        msg = f"Found {len(trendy_keywords[country])} trending keywords for {country}"
+        logger.info(msg); print(msg)
+
+    # Step 5: Upload results
+    for country, trends in trendy_keywords.items():
+        if trends:
+            msg = f"Uploading {len(trends)} keywords for {country}"
+            logger.info(msg); print(msg)
+            upload_to_airtable(trends, country)
+            msg = f"Upload to Airtable completed for {country}"
+            logger.info(msg); print(msg)
+        else:
+            msg = f"No trending keywords found for {country}"
+            logger.info(msg); print(msg)
 
 if __name__ == "__main__":
     main()
