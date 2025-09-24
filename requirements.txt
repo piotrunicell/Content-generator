@@ -6,3 +6,4 @@ selenium
 openai
 pyairtable
 flask
+gunicorn
